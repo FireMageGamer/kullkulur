@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>-.- --- -- .--. .-.. .. / - -... .. ... ... . -- / -- . - .- / - --- .-. --.- --- -.. / ---... -.--.-</title>
+  <style>
+    * {
+      font-family: 'Courier New', Courier, monospace;
+      font-size:60px;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #0a0a0a;
+      height: 100%;
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-shadow: 0 0 5px red;
+      overflow: hidden;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    label, input, button {
+      margin: 10px;
+      background: rgba(0, 0, 0, 0.6);
+      border: none;
+      color: white;
+      padding: 8px;
+    }
+          
+    input[type="checkbox"]{
+        
+    width: 50px;
+    height: 50px;
+        
+    }
+
+    #blackout {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 1s ease-in;
+      z-index: 999;
+    }
+
+    #message {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      opacity: 0;
+      z-index: 1001;
+      white-space: pre-wrap;
+    }
+
+    .type-target {
+      display: inline;
+    }
+
+    audio {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="question"><span class="type-target" data-text="tħobbu l-iswed?"></span></div>
+
+  <div id="options" class="hidden">
+    <label><input type="checkbox" name="answer" value="yes"> <span class="type-target" data-text="ija"></span></label>
+    <label><input type="checkbox" name="answer" value="no"> <span class="type-target" data-text="le"></span></label>
+  </div>
+
+  <div id="reason-div" class="hidden">
+    <input type="text" id="reason" placeholder="għaliex?">
+  </div>
+
+  <div id="submit-div" class="hidden">
+    <button id="submit-btn"><span class="type-target" data-text="ok"></span></button>
+  </div>
+
+  <div id="blackout"></div>
+  <div id="message"></div>
+
+  <audio id="ambiance" loop>
+    <source src="ambiance.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    const ambience = document.getElementById('ambiance');
+    ambience.volume = 0.4;
+    ambience.play();
+
+    function typeWriterElement(el, text, speed = 50, callback) {
+      let i = 0;
+      el.textContent = '';
+      const interval = setInterval(() => {
+        el.textContent += text[i];
+        i++;
+        if (i >= text.length) {
+          clearInterval(interval);
+          if (callback) callback();
+        }
+      }, speed);
+    }
+
+    function typeAll(callback) {
+      const elements = Array.from(document.querySelectorAll('.type-target'));
+      let index = 0;
+
+      function next() {
+        if (index >= elements.length) {
+          if (callback) callback();
+          return;
+        }
+
+        const el = elements[index];
+        const text = el.getAttribute('data-text') || el.textContent;
+        typeWriterElement(el, text, 150, () => {
+          index++;
+          next();
+        });
+      }
+
+      next();
+    }
+
+    window.onload = () => {
+      const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+      const reasonInput = document.getElementById('reason');
+      const submitDiv = document.getElementById('submit-div');
+      const submitBtn = document.getElementById('submit-btn');
+      const blackout = document.getElementById('blackout');
+      const message = document.getElementById('message');
+
+      typeAll(() => {
+        document.getElementById('options').classList.remove('hidden');
+      });
+
+      checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', () => {
+          checkboxes.forEach(c => {
+            if (c !== checkbox) c.checked = false;
+          });
+          document.getElementById('reason-div').classList.remove('hidden');
+        });
+      });
+
+      reasonInput.addEventListener('input', () => {
+        if (document.querySelector('input[name="answer"]:checked')) {
+          submitDiv.classList.remove('hidden');
+        }
+      });
+
+      submitBtn.addEventListener('click', () => {
+        const selected = document.querySelector('input[name="answer"]:checked');
+        const reason = reasonInput.value.trim();
+        if (selected && reason !== "") {
+          blackout.style.opacity = '2';
+          setTimeout(() => {
+            message.style.opacity = '2';
+            typeWriterElement(message, "    il-logħoba mitmuma ... għada tirċievi r-rigal.    \n    orqod sew... :)    ", 150);
+          }, 1000);
+        }
+      });
+    };
+  </script>
+</body>
+</html>
